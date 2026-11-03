@@ -1,0 +1,147 @@
+{
+  "sources": [
+    {
+      "id": "google-news-ai-en",
+      "name": "Google News AI (EN)",
+      "url": "https://news.google.com/rss/search?q=AI+artificial+intelligence&hl=en",
+      "type": "rss",
+      "tier": 1,
+      "language": "en",
+      "category": ["LLM", "Industry"],
+      "max_items": 20,
+      "enabled": true
+    },
+    {
+      "id": "google-news-ai-ko",
+      "name": "Google News AI (KO)",
+      "url": "https://news.google.com/rss/search?q=AI+인공지능&hl=ko&gl=KR&ceid=KR:ko",
+      "type": "rss",
+      "tier": 1,
+      "language": "ko",
+      "category": ["Industry", "Policy"],
+      "max_items": 20,
+      "enabled": true
+    },
+    {
+      "id": "google-news-llm",
+      "name": "Google News LLM",
+      "url": "https://news.google.com/rss/search?q=LLM+large+language+model&hl=en",
+      "type": "rss",
+      "tier": 1,
+      "language": "en",
+      "category": ["LLM"],
+      "max_items": 20,
+      "enabled": true
+    },
+    {
+      "id": "hacker-news",
+      "name": "Hacker News",
+      "url": "https://hnrss.org/frontpage",
+      "type": "rss",
+      "tier": 1,
+      "language": "en",
+      "category": ["OpenSource", "Products"],
+      "max_items": 20,
+      "enabled": true
+    },
+    {
+      "id": "techcrunch-ai",
+      "name": "TechCrunch AI",
+      "url": "https://techcrunch.com/category/artificial-intelligence/feed/",
+      "type": "rss",
+      "tier": 1,
+      "language": "en",
+      "category": ["Industry", "Products"],
+      "max_items": 20,
+      "enabled": true
+    },
+    {
+      "id": "openai-blog",
+      "name": "OpenAI Blog",
+      "url": "https://openai.com/blog/rss.xml",
+      "type": "rss",
+      "tier": 2,
+      "language": "en",
+      "category": ["LLM", "Research"],
+      "max_items": 10,
+      "enabled": true
+    },
+    {
+      "id": "anthropic-blog",
+      "name": "Anthropic (Google News)",
+      "url": "https://news.google.com/rss/search?q=Anthropic+site:anthropic.com&hl=en",
+      "type": "rss",
+      "tier": 2,
+      "language": "en",
+      "category": ["LLM", "Research"],
+      "max_items": 10,
+      "enabled": true
+    },
+    {
+      "id": "google-ai-blog",
+      "name": "Google AI Blog",
+      "url": "https://blog.google/technology/ai/rss/",
+      "type": "rss",
+      "tier": 2,
+      "language": "en",
+      "category": ["Research", "Products"],
+      "max_items": 10,
+      "enabled": true
+    },
+    {
+      "id": "huggingface-blog",
+      "name": "Hugging Face Blog",
+      "url": "https://huggingface.co/blog/feed.xml",
+      "type": "rss",
+      "tier": 2,
+      "language": "en",
+      "category": ["OpenSource", "Research"],
+      "max_items": 10,
+      "enabled": true
+    },
+    {
+      "id": "meta-ai-blog",
+      "name": "Meta AI (Google News)",
+      "url": "https://news.google.com/rss/search?q=Meta+AI+LLaMA+site:ai.meta.com&hl=en",
+      "type": "rss",
+      "tier": 2,
+      "language": "en",
+      "category": ["Research", "OpenSource"],
+      "max_items": 10,
+      "enabled": true
+    },
+    {
+      "id": "google-news-econ-ko",
+      "name": "Google News 경제 (KO)",
+      "url": "https://news.google.com/rss/search?q=한국+경제+코스피&hl=ko&gl=KR&ceid=KR:ko",
+      "type": "rss",
+      "tier": 1,
+      "language": "ko",
+      "category": ["Industry"],
+      "max_items": 15,
+      "enabled": true
+    },
+    {
+      "id": "google-news-econ-global",
+      "name": "Google News 글로벌경제 (EN)",
+      "url": "https://news.google.com/rss/search?q=global+economy+Fed+interest+rate&hl=en",
+      "type": "rss",
+      "tier": 1,
+      "language": "en",
+      "category": ["Industry"],
+      "max_items": 15,
+      "enabled": true
+    },
+    {
+      "id": "google-news-fx",
+      "name": "Google News 환율 (KO)",
+      "url": "https://news.google.com/rss/search?q=환율+달러+원화&hl=ko&gl=KR&ceid=KR:ko",
+      "type": "rss",
+      "tier": 2,
+      "language": "ko",
+      "category": ["Industry"],
+      "max_items": 10,
+      "enabled": true
+    }
+  ]
+}
