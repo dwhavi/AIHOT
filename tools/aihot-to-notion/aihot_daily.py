@@ -17,10 +17,13 @@ from lib_notion import (
     DIV,
     H3,
     P,
-    Q,
     call,
     get_child_page_titles,
 )
+
+CC_BASE_URL = os.environ.get("COMMAND_CODE_BASE_URL", "http://127.0.0.1:10100/v1")
+CC_MODEL = "command-code/meta/muse-spark-1.3-contributor"
+TRANSLATE_MAX = 30
 
 KST = timezone(timedelta(hours=9))
 QUEUE_CANDIDATES = [
@@ -55,13 +58,112 @@ def sort_key(d):
 
 
 def title_of(d):
-    return d.get("ai_title_ko") or d.get("title") or "(제목 없음)"
+    return d.get("tr_title_ko") or d.get("ai_title_ko") or d.get("title") or "(제목 없음)"
 
 
 def summary_of(d):
-    s = d.get("ai_summary") or d.get("description") or ""
+    s = d.get("tr_summary_ko") or d.get("ai_summary") or d.get("description") or ""
     s = s.replace("\n", " ").strip()
     return s[:150]
+
+
+def is_english(text):
+    if not text:
+        return False
+    sample = text[:100]
+    ascii_n = sum(1 for c in sample if ord(c) < 128)
+    return ascii_n >= len(sample) * 0.7 and any("a" <= c.lower() <= "z" for c in sample)
+
+
+def load_cc_key():
+    key = os.environ.get("COMMAND_CODE_API_KEY", "")
+    if key:
+        return key
+    for env_path in (os.path.expanduser("~/.hermes/.env"), os.path.expanduser("~/.env")):
+        if os.path.exists(env_path):
+            for line in open(env_path, encoding="utf-8", errors="replace"):
+                if line.startswith("COMMAND_CODE_API_KEY="):
+                    key = line.split("=", 1)[1].strip()
+                    if key:
+                        return key
+    return ""
+
+
+def display_targets(day):
+    high = sorted([x for x in day if x.get("ai_importance") == "high"], key=sort_key)
+    dev = sorted([x for x in day if (x.get("ai_category") in DEV_CATS)], key=sort_key)
+    all_sorted = sorted(day, key=sort_key)[:MAX_ITEMS]
+    seen, ordered = set(), []
+    for d in high + dev[:20] + all_sorted:
+        uid = d.get("url") or d.get("hash") or d.get("title")
+        if uid in seen:
+            continue
+        seen.add(uid)
+        ordered.append(d)
+    return ordered[:TRANSLATE_MAX]
+
+
+def translate_day_items(day):
+    ordered = display_targets(day)
+    targets = []
+    for d in ordered:
+        need_t = not d.get("ai_title_ko") and is_english(d.get("title", ""))
+        need_s = not d.get("ai_summary") and is_english(d.get("description", ""))
+        if need_t or need_s:
+            try:
+                targets.append(day.index(d))
+            except ValueError:
+                continue
+    targets = targets[:TRANSLATE_MAX]
+    if not targets:
+        return 0
+    key = load_cc_key()
+    if not key:
+        print("translate skipped: no COMMAND_CODE_API_KEY")
+        return 0
+    import urllib.request
+    lines = []
+    for i in targets:
+        d = day[i]
+        lines.append(f"[{i}] TITLE: {(d.get('title') or '')[:150]}")
+        if (d.get("description") or "").strip():
+            lines.append(f"[{i}] DESC: {(d.get('description') or '')[:200]}")
+    system = ("Translate the following English news titles/descriptions to Korean. "
+              "Keep proper nouns (company/model/tech terms) in English. "
+              "Output ONLY lines in the same [N] TITLE:/DESC: format. No explanation.")
+    body = json.dumps({
+        "model": CC_MODEL,
+        "messages": [{"role": "system", "content": system},
+                     {"role": "user", "content": "\n".join(lines)}],
+        "temperature": 0.2,
+        "max_tokens": 4000,
+    }).encode()
+    try:
+        req = urllib.request.Request(
+            f"{CC_BASE_URL}/chat/completions", data=body,
+            headers={"Authorization": f"Bearer {key}", "Content-Type": "application/json"})
+        with urllib.request.urlopen(req, timeout=120) as resp:
+            msg = json.loads(resp.read().decode())["choices"][0]["message"]
+            content = msg.get("content") or ""
+    except Exception as e:
+        print(f"translate failed, keep original: {e}")
+        return 0
+    import re
+    done = set()
+    for m in re.finditer(r"\[(\d+)\]\s*(TITLE|DESC)\s*[:：][^\S\n]*(.*?)[^\S\n]*(?=\n|\Z)", content):
+        idx, kind, text = int(m.group(1)), m.group(2), m.group(3).strip()
+        if idx not in targets or not text:
+            continue
+        if kind == "TITLE":
+            day[idx]["tr_title_ko"] = text[:100]
+        else:
+            day[idx]["tr_summary_ko"] = text[:150]
+        done.add(idx)
+    missing = [i for i in targets if i not in done]
+    if missing:
+        print(f"unmatched idx: {missing[:10]}")
+    print(f"translated {len(done)}/{len(targets)}")
+    return len(done)
 
 
 def item_blocks(d):
@@ -164,6 +266,7 @@ def main():
     if title in existing:
         print(f"SKIP: '{title}' already exists ({existing[title][:8]}).")
         return 0
+    translate_day_items(day)
     children = build_children(today, day)
     print("blocks:", len(children))
     create_page_chunked(title, children)
